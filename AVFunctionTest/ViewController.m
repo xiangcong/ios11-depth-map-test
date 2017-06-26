@@ -60,7 +60,8 @@
         _session = [[AVCaptureSession alloc] init];
         _session.sessionPreset = AVCaptureSessionPresetPhoto;
         
-        AVCaptureDevice *device = [self getCamera:cameraPostion];
+//        AVCaptureDevice *device = [self getCamera:cameraPostion];
+        AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithDeviceType:AVCaptureDeviceTypeBuiltInDualCamera mediaType:AVMediaTypeVideo position:AVCaptureDevicePositionBack];
         NSError *error = nil;
         
         AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:device error:&error];
@@ -83,8 +84,9 @@
 #endif
         
 #if 1
+        dispatch_queue_t depth = dispatch_queue_create("test", NULL);
         _depthOutput = [AVCaptureDepthDataOutput new];
-        [_depthOutput setDelegate:self callbackQueue:dispatch_get_main_queue()];
+        [_depthOutput setDelegate:self callbackQueue:depth];
         [_session addOutput:_depthOutput];
 #endif
         
