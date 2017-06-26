@@ -1,7 +1,7 @@
 #import "ViewController.h"
 #import <AVFoundation/AVFoundation.h>
 
-@interface ViewController ()
+@interface ViewController () <AVCaptureDepthDataOutputDelegate>
 @property (nonatomic, strong) UIImageView *cameraImageView;
 @property (nonatomic, strong) AVCaptureStillImageOutput *stillImageOutput;
 @property (nonatomic, strong) AVCaptureSession *session;
@@ -81,15 +81,18 @@
                                                                  forKey:(id)kCVPixelBufferPixelFormatTypeKey];
         [_session addOutput:_videoOutput];
 #endif
-        _depthOutput = [[AVCaptureDepthDataOutput alloc] init];
+        
+#if 1
+        _depthOutput = [AVCaptureDepthDataOutput new];
         [_depthOutput setDelegate:self callbackQueue:dispatch_get_main_queue()];
         [_session addOutput:_depthOutput];
+#endif
         
         
-//        AVCaptureVideoPreviewLayer *captureVideoPreviewLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:_session];
-//        [captureVideoPreviewLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
-//        [captureVideoPreviewLayer setFrame:self.cameraImageView.bounds];
-//        [self.cameraImageView.layer addSublayer:captureVideoPreviewLayer];
+        AVCaptureVideoPreviewLayer *captureVideoPreviewLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:_session];
+        [captureVideoPreviewLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
+        [captureVideoPreviewLayer setFrame:self.cameraImageView.bounds];
+        [self.cameraImageView.layer addSublayer:captureVideoPreviewLayer];
         
         [_session startRunning];
         
@@ -100,6 +103,16 @@
 {
     NSLog(@"hi");
 }
+
+- (void)depthDataOutput:(AVCaptureDepthDataOutput *)output
+       didDropDepthData:(AVDepthData *)depthData
+              timestamp:(CMTime)timestamp
+             connection:(AVCaptureConnection *)connection
+                 reason:(AVCaptureOutputDataDroppedReason)reason;
+{
+    NSLog(@"drop");
+}
+
 
 
 // 获取device
