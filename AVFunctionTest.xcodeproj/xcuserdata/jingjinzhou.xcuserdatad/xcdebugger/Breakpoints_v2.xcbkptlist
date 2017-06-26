@@ -10,27 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AVFunctionTest/ViewController.m"
-            timestampString = "520146699.326675"
+            timestampString = "520151856.231685"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "106"
-            endingLineNumber = "106"
-            landmarkName = "-depthDataOutput:didOutputDepthData:timestamp:connection:"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "AVFunctionTest/ViewController.m"
-            timestampString = "520146699.326988"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "115"
-            endingLineNumber = "115"
+            startingLineNumber = "146"
+            endingLineNumber = "146"
             landmarkName = "-depthDataOutput:didDropDepthData:timestamp:connection:reason:"
             landmarkType = "7">
          </BreakpointContent>
@@ -42,11 +26,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AVFunctionTest/ViewController.m"
-            timestampString = "520146699.32721"
+            timestampString = "520151856.232003"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "90"
-            endingLineNumber = "90"
+            startingLineNumber = "100"
+            endingLineNumber = "100"
             landmarkName = "-openCamera:"
             landmarkType = "7">
          </BreakpointContent>
@@ -54,15 +38,31 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AVFunctionTest/ViewController.m"
-            timestampString = "520146699.327427"
+            timestampString = "520151856.23222"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "106"
-            endingLineNumber = "106"
+            startingLineNumber = "145"
+            endingLineNumber = "145"
+            landmarkName = "-depthDataOutput:didDropDepthData:timestamp:connection:reason:"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "AVFunctionTest/ViewController.m"
+            timestampString = "520151856.232428"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "138"
+            endingLineNumber = "138"
             landmarkName = "-depthDataOutput:didOutputDepthData:timestamp:connection:"
             landmarkType = "7">
          </BreakpointContent>
@@ -74,12 +74,28 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AVFunctionTest/ViewController.m"
-            timestampString = "520146699.327628"
+            timestampString = "520151856.232627"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "114"
-            endingLineNumber = "114"
-            landmarkName = "-depthDataOutput:didDropDepthData:timestamp:connection:reason:"
+            startingLineNumber = "135"
+            endingLineNumber = "135"
+            landmarkName = "-depthDataOutput:didOutputDepthData:timestamp:connection:"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "AVFunctionTest/ViewController.m"
+            timestampString = "520151856.232825"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "128"
+            endingLineNumber = "128"
+            landmarkName = "-depthDataOutput:didOutputDepthData:timestamp:connection:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

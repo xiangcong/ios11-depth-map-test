@@ -3,6 +3,7 @@
 
 @interface ViewController () <AVCaptureDepthDataOutputDelegate>
 @property (nonatomic, strong) UIImageView *cameraImageView;
+@property (nonatomic, strong) UIImageView *depthImageView;
 @property (nonatomic, strong) AVCaptureStillImageOutput *stillImageOutput;
 @property (nonatomic, strong) AVCaptureSession *session;
 @property (nonatomic, strong) AVCaptureVideoDataOutput *videoOutput;
@@ -13,9 +14,17 @@
 
 - (UIImageView *)cameraImageView{
     if (!_cameraImageView) {
-        _cameraImageView = [[UIImageView alloc] initWithFrame:CGRectMake(50, 230, 200, 200)];
+        _cameraImageView = [[UIImageView alloc] initWithFrame:CGRectMake(8, 230, 192 , 256)];
     }
+    
     return _cameraImageView;
+}
+
+-(UIImageView *) depthImageView {
+    if(!_depthImageView) {
+        _depthImageView = [[UIImageView alloc] initWithFrame:CGRectMake(210, 230, 192, 256)];
+    }
+    return _depthImageView;
 }
 
 - (void)viewDidLoad {
@@ -32,8 +41,9 @@
     [btn1 addTarget:self action:@selector(btnClick1:) forControlEvents:UIControlEventTouchUpInside];
     
     [self.view addSubview:btn];
-    [self.view addSubview:btn1];
+//    [self.view addSubview:btn1];
     [self.view addSubview:self.cameraImageView];
+    [self.view addSubview:self.depthImageView];
 }
 
 // 按钮点击事件
@@ -84,9 +94,9 @@
 #endif
         
 #if 1
-        dispatch_queue_t depth = dispatch_queue_create("test", NULL);
+//        dispatch_queue_t depth = dispatch_queue_create("test", NULL);
         _depthOutput = [AVCaptureDepthDataOutput new];
-        [_depthOutput setDelegate:self callbackQueue:depth];
+        [_depthOutput setDelegate:self callbackQueue:dispatch_get_main_queue()];
         [_session addOutput:_depthOutput];
 #endif
         
@@ -103,7 +113,28 @@
 
 - (void)depthDataOutput:(AVCaptureDepthDataOutput *)output didOutputDepthData:(AVDepthData *)depthData timestamp:(CMTime)timestamp connection:(AVCaptureConnection *)connection;
 {
-    NSLog(@"hi");
+    NSLog(@"get depth data");
+    //CVPixelBuffer -> CIImage -> CGImageRef -> UIImage
+    
+    CIImage *ciImage = [CIImage imageWithCVPixelBuffer:depthData.depthDataMap];
+    
+    CIContext *temporaryContext = [CIContext contextWithOptions:nil];
+    CGImageRef videoImage = [temporaryContext
+                             createCGImage:ciImage
+                             fromRect:CGRectMake(0, 0,
+                                                 CVPixelBufferGetWidth(depthData.depthDataMap),
+                                                 CVPixelBufferGetHeight(depthData.depthDataMap))];
+    
+    UIImage *uiImage = [UIImage imageWithCGImage:videoImage];
+    
+    //旋转
+    
+    self.depthImageView.image = [[UIImage alloc] initWithCGImage: uiImage.CGImage
+                                                            scale: 1.0
+                                                      orientation: UIImageOrientationRight];
+    CGImageRelease(videoImage);
+    
+    
 }
 
 - (void)depthDataOutput:(AVCaptureDepthDataOutput *)output
