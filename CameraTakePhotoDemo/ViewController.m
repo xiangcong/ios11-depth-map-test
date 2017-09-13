@@ -42,7 +42,7 @@
     self.session = [AVCaptureSession new];
     self.session.sessionPreset = AVCaptureSessionPresetPhoto;
     
-    AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithDeviceType:AVCaptureDeviceTypeBuiltInWideAngleCamera
+    AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithDeviceType:AVCaptureDeviceTypeBuiltInDualCamera
                                                                  mediaType:AVMediaTypeVideo
                                                                   position:AVCaptureDevicePositionBack];
     
@@ -55,7 +55,10 @@
     [self.session addInput:input];
     
     self.output = [AVCapturePhotoOutput new];
+    
+
     self.output.highResolutionCaptureEnabled = YES;
+    
     
     [self.session addOutput:self.output];
     
@@ -64,6 +67,14 @@
     [captureVideoPreviewLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
     [captureVideoPreviewLayer setFrame:self.previewView.bounds];
     [self.previewView.layer addSublayer:captureVideoPreviewLayer];
+    
+    self.output.depthDataDeliveryEnabled = YES;
+    
+    if (self.output.depthDataDeliverySupported) {
+        NSLog(@"support depth");
+    } else {
+        NSLog(@"not support depth");
+    }
     
     [self.session startRunning];
     
@@ -77,6 +88,8 @@
     if (!status) {
         NSDictionary *setDic = @{AVVideoCodecKey:AVVideoCodecJPEG};
         AVCapturePhotoSettings *setting = [AVCapturePhotoSettings photoSettingsWithFormat:setDic];
+        setting.embedsDepthDataInPhoto = YES;
+        setting.depthDataDeliveryEnabled = YES;
         
         setting.highResolutionPhotoEnabled = YES;
         
@@ -91,15 +104,15 @@
     status = !status;
 }
 
-- (void)captureOutput:(AVCapturePhotoOutput *)captureOutput didFinishProcessingPhotoSampleBuffer:(nullable CMSampleBufferRef)photoSampleBuffer previewPhotoSampleBuffer:(nullable CMSampleBufferRef)previewPhotoSampleBuffer resolvedSettings:(AVCaptureResolvedPhotoSettings *)resolvedSettings bracketSettings:(nullable AVCaptureBracketedStillImageSettings *)bracketSettings error:(nullable NSError *)error {
-    
-    
-    NSData *data = [AVCapturePhotoOutput JPEGPhotoDataRepresentationForJPEGSampleBuffer:photoSampleBuffer previewPhotoSampleBuffer:previewPhotoSampleBuffer];
-    UIImage *image = [UIImage imageWithData:data];
-    
-    self.retView.image = image;
-    self.retView.hidden = NO;
-}
+//- (void)captureOutput:(AVCapturePhotoOutput *)captureOutput didFinishProcessingPhotoSampleBuffer:(nullable CMSampleBufferRef)photoSampleBuffer previewPhotoSampleBuffer:(nullable CMSampleBufferRef)previewPhotoSampleBuffer resolvedSettings:(AVCaptureResolvedPhotoSettings *)resolvedSettings bracketSettings:(nullable AVCaptureBracketedStillImageSettings *)bracketSettings error:(nullable NSError *)error {
+//
+//
+//    NSData *data = [AVCapturePhotoOutput JPEGPhotoDataRepresentationForJPEGSampleBuffer:photoSampleBuffer previewPhotoSampleBuffer:previewPhotoSampleBuffer];
+//    UIImage *image = [UIImage imageWithData:data];
+//
+//    self.retView.image = image;
+//    self.retView.hidden = NO;
+//}
 
 
 
@@ -124,6 +137,34 @@
 ////                                                     orientation: UIImageOrientationRight];
 //    CGImageRelease(videoImage);
 //}
+
+- (void)captureOutput:(AVCapturePhotoOutput *)output didFinishProcessingPhoto:(AVCapturePhoto *)photo error:(NSError *)error;
+{
+        NSLog(@"capture a image");
+        
+        AVDepthData *depthData = photo.depthData;
+        
+        CIImage *ciImage = [CIImage imageWithCVPixelBuffer:depthData.depthDataMap];
+        
+        CIContext *temporaryContext = [CIContext contextWithOptions:nil];
+        CGImageRef videoImage = [temporaryContext
+                                 createCGImage:ciImage
+                                 fromRect:CGRectMake(0, 0,
+                                                     CVPixelBufferGetWidth(depthData.depthDataMap),
+                                                     CVPixelBufferGetHeight(depthData.depthDataMap))];
+        
+        UIImage *uiImage = [UIImage imageWithCGImage:videoImage];
+        
+        //旋转
+        self.retView.image = [[UIImage alloc] initWithCGImage: uiImage.CGImage
+                                                               scale: 1.0
+                                                         orientation: UIImageOrientationRight];
+//        self.retView.image = uiImage;
+    
+        self.retView.hidden = NO;
+        CGImageRelease(videoImage);
+    
+}
 
 
 - (void)didReceiveMemoryWarning {
