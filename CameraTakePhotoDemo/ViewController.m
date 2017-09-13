@@ -142,8 +142,10 @@
 {
         NSLog(@"capture a image");
         
-        AVDepthData *depthData = photo.depthData;
-        
+        AVDepthData *depthDataOrigin = photo.depthData;
+    
+        AVDepthData *depthData = [depthDataOrigin depthDataByConvertingToDepthDataType:kCVPixelFormatType_DepthFloat32];
+    
         CIImage *ciImage = [CIImage imageWithCVPixelBuffer:depthData.depthDataMap];
         
         CIContext *temporaryContext = [CIContext contextWithOptions:nil];
@@ -154,12 +156,17 @@
                                                      CVPixelBufferGetHeight(depthData.depthDataMap))];
         
         UIImage *uiImage = [UIImage imageWithCGImage:videoImage];
-        
+    
+//    [self normalizeImage:uiImage];
+    
         //旋转
         self.retView.image = [[UIImage alloc] initWithCGImage: uiImage.CGImage
                                                                scale: 1.0
                                                          orientation: UIImageOrientationRight];
-//        self.retView.image = uiImage;
+    
+    
+    
+    
     
         self.retView.hidden = NO;
         CGImageRelease(videoImage);
@@ -167,9 +174,103 @@
 }
 
 
+- (void) normalizeImage:(UIImage *) image
+{
+    UInt8 minVal = 255;
+    UInt8 maxVal = 0;
+    CGImageRef imageRef = image.CGImage;
+    CFDataRef pixelData = CGDataProviderCopyData(CGImageGetDataProvider(image.CGImage));
+    UInt8* data = CFDataGetBytePtr(pixelData);
+    
+    for(int x = 0; x < image.size.width; ++x){
+        for(int y = 0; y < image.size.height; ++y) {
+            int pixelInfo = ((image.size.width  * y) + x ) * 4;
+            UInt8 red = data[pixelInfo];
+            if (red > maxVal) {
+                maxVal = red;
+            }
+            if (red < minVal) {
+                minVal = red;
+            }
+            if (red != 255) {
+            }
+        }
+    }
+    NSLog(@"max val:%u, min val:%u", maxVal, minVal);
+    
+    //更改值
+    for(int x = 0; x < image.size.width; ++x){
+        for(int y = 0; y < image.size.height; ++y) {
+            int pixelInfo = ((image.size.width  * y) + x ) * 4; // The image is png ??
+            UInt8 red = data[pixelInfo];
+            UInt8 green = data[pixelInfo + 1];
+            UInt8 blue = data[pixelInfo + 2];
+            
+            data[pixelInfo] = (red - minVal) / (maxVal - minVal);
+            data[pixelInfo+1] = (green - minVal) / (maxVal - minVal);
+            data[pixelInfo+2] = (blue - minVal) / (maxVal - minVal);
+        }
+    }
+    
+    size_t width                    = CGImageGetWidth(imageRef);
+    size_t height                   = CGImageGetHeight(imageRef);
+    size_t bitsPerComponent         = CGImageGetBitsPerComponent(imageRef);
+    size_t bitsPerPixel             = CGImageGetBitsPerPixel(imageRef);
+    size_t bytesPerRow              = CGImageGetBytesPerRow(imageRef);
+    
+    CGColorSpaceRef colorspace      = CGColorSpaceCreateDeviceRGB();
+    CGBitmapInfo bitmapInfo         = CGImageGetBitmapInfo(imageRef);
+    CGDataProviderRef provider      = CGDataProviderCreateWithData(NULL, data, [(__bridge NSData *)pixelData length], NULL);
+    
+    CGImageRef newImageRef = CGImageCreate (
+                                            width,
+                                            height,
+                                            bitsPerComponent,
+                                            bitsPerPixel,
+                                            bytesPerRow,
+                                            colorspace,
+                                            bitmapInfo,
+                                            provider,
+                                            NULL,
+                                            false,
+                                            kCGRenderingIntentDefault
+                                            );
+    // the modified image
+    UIImage *newImage   = [UIImage imageWithCGImage:newImageRef];
+    
+    // cleanup
+    CFRelease(pixelData);
+    CGImageRelease(imageRef);
+    CGColorSpaceRelease(colorspace);
+    CGDataProviderRelease(provider);
+    CGImageRelease(newImageRef);
+    
+    
+}
+
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+- (BOOL)isWallPixel:(UIImage *)image xCoordinate:(int)x yCoordinate:(int)y {
+    
+    CFDataRef pixelData = CGDataProviderCopyData(CGImageGetDataProvider(image.CGImage));
+    const UInt8* data = CFDataGetBytePtr(pixelData);
+    
+    int pixelInfo = ((image.size.width  * y) + x ) * 4; // The image is png
+    
+    //UInt8 red = data[pixelInfo];         // If you need this info, enable it
+    //UInt8 green = data[(pixelInfo + 1)]; // If you need this info, enable it
+    //UInt8 blue = data[pixelInfo + 2];    // If you need this info, enable it
+    UInt8 alpha = data[pixelInfo + 3];     // I need only this info for my maze game
+    CFRelease(pixelData);
+    
+    //UIColor* color = [UIColor colorWithRed:red/255.0f green:green/255.0f blue:blue/255.0f alpha:alpha/255.0f]; // The pixel color info
+    
+    if (alpha) return YES;
+    else return NO;
+    
 }
 
 
