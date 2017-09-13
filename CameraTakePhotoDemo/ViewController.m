@@ -17,6 +17,8 @@
 @property (nonatomic, assign) float screenHeight;
 @property (nonatomic, assign) float screenWidth;
 @property (nonatomic, strong) UIImageView *retView;
+@property (nonatomic, strong) UIButton *saveButton;
+@property (nonatomic, strong) UIImage *retImage;
 
 @end
 
@@ -36,6 +38,17 @@
     self.screenHeight = self.view.bounds.size.height;
     self.captureButton = [[UIButton alloc] initWithFrame:CGRectMake(self.screenWidth / 2 - 40, self.screenHeight - 60, 80, 40)];
     self.captureButton.backgroundColor = [UIColor colorWithRed:0 green:0 blue:1 alpha:0.5];
+    [self.captureButton setTitle:@"拍摄" forState:UIControlStateNormal];
+    
+    self.saveButton = [[UIButton alloc] initWithFrame:CGRectMake(self.screenWidth / 2 + 80, self.screenHeight - 60, 80, 40)];
+    self.saveButton.backgroundColor = [UIColor colorWithRed:0 green:1.0 blue:0.0 alpha:0.5];
+    self.saveButton.hidden = YES;
+    self.saveButton.userInteractionEnabled = NO;
+    [self.saveButton setTitle:@"保存" forState:UIControlStateNormal];
+    [self.view addSubview:self.saveButton];
+    [self.saveButton addTarget:self action:@selector(handleSave) forControlEvents:UIControlEventTouchUpInside];
+    
+    
     [self.view addSubview:self.captureButton];
     [self.captureButton addTarget:self action:@selector(captureImage) forControlEvents:UIControlEventTouchUpInside];
     
@@ -81,95 +94,78 @@
     // Do any additional setup after loading the view, typically from a nib.
 }
 
+
+- (void) handleSave
+{
+    if (self.retImage) {
+        UIImageWriteToSavedPhotosAlbum(self.retImage,self,nil,nil);
+    }
+}
+
 - (void) captureImage
 {
     static BOOL status = NO;
     
     if (!status) {
-        NSDictionary *setDic = @{AVVideoCodecKey:AVVideoCodecJPEG};
-        AVCapturePhotoSettings *setting = [AVCapturePhotoSettings photoSettingsWithFormat:setDic];
-        setting.embedsDepthDataInPhoto = YES;
+//        NSDictionary *setDic = @{AVVideoCodecKey:AVVideoCodecJPEG};
+//        AVCapturePhotoSettings *setting = [AVCapturePhotoSettings photoSettingsWithFormat:setDic];
+        AVCapturePhotoSettings *setting = [AVCapturePhotoSettings new];
+//        setting.embedsDepthDataInPhoto = YES;
         setting.depthDataDeliveryEnabled = YES;
         
         setting.highResolutionPhotoEnabled = YES;
         
         [self.output capturePhotoWithSettings:setting
                                      delegate:self];
-        self.captureButton.backgroundColor = [UIColor colorWithRed:1 green:0 blue:0 alpha:0.5];
     } else {
         self.retView.hidden = YES;
+        self.saveButton.hidden = YES;
+        self.saveButton.userInteractionEnabled = NO;
+        [self.captureButton setTitle:@"拍摄" forState:UIControlStateNormal];
         self.captureButton.backgroundColor = [UIColor colorWithRed:0 green:0 blue:1 alpha:0.5];
     }
 
     status = !status;
 }
 
-//- (void)captureOutput:(AVCapturePhotoOutput *)captureOutput didFinishProcessingPhotoSampleBuffer:(nullable CMSampleBufferRef)photoSampleBuffer previewPhotoSampleBuffer:(nullable CMSampleBufferRef)previewPhotoSampleBuffer resolvedSettings:(AVCaptureResolvedPhotoSettings *)resolvedSettings bracketSettings:(nullable AVCaptureBracketedStillImageSettings *)bracketSettings error:(nullable NSError *)error {
-//
-//
-//    NSData *data = [AVCapturePhotoOutput JPEGPhotoDataRepresentationForJPEGSampleBuffer:photoSampleBuffer previewPhotoSampleBuffer:previewPhotoSampleBuffer];
-//    UIImage *image = [UIImage imageWithData:data];
-//
-//    self.retView.image = image;
-//    self.retView.hidden = NO;
-//}
-
-
-
-//- (void)captureOutput:(AVCapturePhotoOutput *)output didFinishProcessingPhoto:(AVCapturePhoto *)photo error:(NSError *)error;
-//{
-//    NSLog(@"capture a image");
-//
-//    CIImage *ciImage = [CIImage imageWithCVPixelBuffer:photo.pixelBuffer];
-//
-//    CIContext *temporaryContext = [CIContext contextWithOptions:nil];
-//    CGImageRef videoImage = [temporaryContext
-//                             createCGImage:ciImage
-//                             fromRect:CGRectMake(0, 0,
-//                                                 CVPixelBufferGetWidth(photo.pixelBuffer),
-//                                                 CVPixelBufferGetHeight(photo.pixelBuffer))];
-//
-//    UIImage *uiImage = [UIImage imageWithCGImage:videoImage];
-//
-////
-////    self.depthImageView.image = [[UIImage alloc] initWithCGImage: uiImage.CGImage
-////                                                           scale: 1.0
-////                                                     orientation: UIImageOrientationRight];
-//    CGImageRelease(videoImage);
-//}
-
 - (void)captureOutput:(AVCapturePhotoOutput *)output didFinishProcessingPhoto:(AVCapturePhoto *)photo error:(NSError *)error;
 {
-        NSLog(@"capture a image");
-        
-        AVDepthData *depthDataOrigin = photo.depthData;
+    NSLog(@"capture a image");
     
-        AVDepthData *depthData = [depthDataOrigin depthDataByConvertingToDepthDataType:kCVPixelFormatType_DepthFloat32];
+    AVDepthData *depthDataOrigin = photo.depthData;
+
+    AVDepthData *depthData = [depthDataOrigin depthDataByConvertingToDepthDataType:kCVPixelFormatType_DepthFloat32];
+
+    CIImage *ciImage = [CIImage imageWithCVPixelBuffer:depthData.depthDataMap];
     
-        CIImage *ciImage = [CIImage imageWithCVPixelBuffer:depthData.depthDataMap];
-        
-        CIContext *temporaryContext = [CIContext contextWithOptions:nil];
-        CGImageRef videoImage = [temporaryContext
-                                 createCGImage:ciImage
-                                 fromRect:CGRectMake(0, 0,
-                                                     CVPixelBufferGetWidth(depthData.depthDataMap),
-                                                     CVPixelBufferGetHeight(depthData.depthDataMap))];
-        
-        UIImage *uiImage = [UIImage imageWithCGImage:videoImage];
+    CIContext *temporaryContext = [CIContext contextWithOptions:nil];
+    CGImageRef videoImage = [temporaryContext
+                             createCGImage:ciImage
+                             fromRect:CGRectMake(0, 0,
+                                                 CVPixelBufferGetWidth(depthData.depthDataMap),
+                                                 CVPixelBufferGetHeight(depthData.depthDataMap))];
     
-    UIImage *normalizeImage = [self normalizeImage:uiImage];
-    
-        //旋转
-        self.retView.image = [[UIImage alloc] initWithCGImage: normalizeImage.CGImage
-                                                               scale: 1.0
-                                                         orientation: UIImageOrientationRight];
-    
-    
-    
-    
-    
-        self.retView.hidden = NO;
-        CGImageRelease(videoImage);
+    UIImage *uiImage = [UIImage imageWithCGImage:videoImage];
+
+    self.retImage = [self normalizeImage:uiImage];
+
+    //旋转
+    self.retImage = [[UIImage alloc] initWithCGImage: self.retImage.CGImage
+                                                           scale: 1.0
+                                                     orientation: UIImageOrientationRight];
+
+    self.retView.image = self.retImage;
+
+
+
+
+    self.retView.hidden = NO;
+    self.captureButton.backgroundColor = [UIColor colorWithRed:1 green:0 blue:0 alpha:0.5];
+    [self.captureButton setTitle:@"恢复" forState:UIControlStateNormal];
+    self.saveButton.userInteractionEnabled = YES;
+    self.saveButton.hidden = NO;
+
+    CGImageRelease(videoImage);
     
 }
 
@@ -254,25 +250,6 @@
     // Dispose of any resources that can be recreated.
 }
 
-- (BOOL)isWallPixel:(UIImage *)image xCoordinate:(int)x yCoordinate:(int)y {
-    
-    CFDataRef pixelData = CGDataProviderCopyData(CGImageGetDataProvider(image.CGImage));
-    const UInt8* data = CFDataGetBytePtr(pixelData);
-    
-    int pixelInfo = ((image.size.width  * y) + x ) * 4; // The image is png
-    
-    //UInt8 red = data[pixelInfo];         // If you need this info, enable it
-    //UInt8 green = data[(pixelInfo + 1)]; // If you need this info, enable it
-    //UInt8 blue = data[pixelInfo + 2];    // If you need this info, enable it
-    UInt8 alpha = data[pixelInfo + 3];     // I need only this info for my maze game
-    CFRelease(pixelData);
-    
-    //UIColor* color = [UIColor colorWithRed:red/255.0f green:green/255.0f blue:blue/255.0f alpha:alpha/255.0f]; // The pixel color info
-    
-    if (alpha) return YES;
-    else return NO;
-    
-}
 
 
 @end
