@@ -157,10 +157,10 @@
         
         UIImage *uiImage = [UIImage imageWithCGImage:videoImage];
     
-//    [self normalizeImage:uiImage];
+    UIImage *normalizeImage = [self normalizeImage:uiImage];
     
         //旋转
-        self.retView.image = [[UIImage alloc] initWithCGImage: uiImage.CGImage
+        self.retView.image = [[UIImage alloc] initWithCGImage: normalizeImage.CGImage
                                                                scale: 1.0
                                                          orientation: UIImageOrientationRight];
     
@@ -174,7 +174,7 @@
 }
 
 
-- (void) normalizeImage:(UIImage *) image
+- (UIImage *) normalizeImage:(UIImage *) image
 {
     UInt8 minVal = 255;
     UInt8 maxVal = 0;
@@ -206,9 +206,9 @@
             UInt8 green = data[pixelInfo + 1];
             UInt8 blue = data[pixelInfo + 2];
             
-            data[pixelInfo] = (red - minVal) / (maxVal - minVal);
-            data[pixelInfo+1] = (green - minVal) / (maxVal - minVal);
-            data[pixelInfo+2] = (blue - minVal) / (maxVal - minVal);
+            data[pixelInfo] = (float)(red - minVal) / (maxVal - minVal) * 255;
+            data[pixelInfo+1] = (float)(green - minVal) / (maxVal - minVal) * 255;
+            data[pixelInfo+2] = (float)(blue - minVal) / (maxVal - minVal) * 255;
         }
     }
     
@@ -239,12 +239,13 @@
     UIImage *newImage   = [UIImage imageWithCGImage:newImageRef];
     
     // cleanup
-    CFRelease(pixelData);
-    CGImageRelease(imageRef);
+//    CFRelease(pixelData);
+//    CGImageRelease(imageRef);
     CGColorSpaceRelease(colorspace);
     CGDataProviderRelease(provider);
     CGImageRelease(newImageRef);
     
+    return newImage;
     
 }
 
